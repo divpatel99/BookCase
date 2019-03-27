@@ -12,14 +12,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final TextView relative = (TextView) findViewById(R.id.TextV);
 
-        setContentView(R.layout.activity_main);
 
-        Resources res = getResources();
-        String[] planets = res.getStringArray(R.array.planets_array);
-        planets[0] = "Book 1";
-        relative.setText(planets[0]);
 
 
 
