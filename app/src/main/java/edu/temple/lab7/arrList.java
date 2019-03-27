@@ -6,7 +6,6 @@ import java.util.ArrayList;
 public class arrList implements Serializable {
 
     String bookName;
-    String bookNameLan;
 
     public static boolean isLan = false;
     public static boolean isVer = false;
