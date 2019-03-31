@@ -15,10 +15,14 @@ import java.util.ArrayList;
 
 public class BookListFragment extends Fragment {
 
-    ArrayAdapter<arrList> bookAdapter;
+    ArrayAdapter<String> bookAdapter;
     ListView viewonList;
     int listNum =android.R.layout.simple_list_item_activated_1;
     OnItemSelectedListener listener;
+
+    ArrayList<String> books;
+
+
 
 
     @Override
@@ -31,23 +35,32 @@ public class BookListFragment extends Fragment {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.booklist_frag, container,
-                false);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.booklist_frag, container, false);
+
+        books = arrList.displayBooksTitle(arrList.allBooksArraylist);
+        bookAdapter = new ArrayAdapter<String>(getActivity(), listNum, books);
 
         viewonList = (ListView) view.findViewById(R.id.booklist);
         viewonList.setAdapter(bookAdapter);
+
         viewonList.setOnItemClickListener(new OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View book, int position,
-                                    long bookId) {
-                arrList lis = bookAdapter.getItem(position);
+            public void onItemClick(AdapterView<?> adapterView, View book, int position, long bookId)
+            {
 
-                listener.onItemSelected(lis);
+                listener.onItemSelected(position);
             }
         });
         return view;
+    }
+
+    public void my_work(ArrayList<Book> bookArrayList)
+    {
+        books = arrList.displayBooksTitle(bookArrayList);
+        bookAdapter = new ArrayAdapter<String>(getActivity(), listNum, books);
+        viewonList.setAdapter(bookAdapter);
+
     }
 
     public void setActivateOnItemClick(boolean onClick) {
@@ -64,14 +77,11 @@ public class BookListFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ArrayList<arrList> books = arrList.displayBooks();
 
-        bookAdapter = new ArrayAdapter<arrList>(getActivity(),
-                listNum, books);
     }
 
 
     public interface OnItemSelectedListener {
-        public void onItemSelected(arrList val);
+        public void onItemSelected(int position);
     }
 }
