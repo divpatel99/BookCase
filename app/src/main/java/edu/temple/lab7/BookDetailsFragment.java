@@ -1,5 +1,6 @@
 package edu.temple.lab7;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -8,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -18,8 +20,26 @@ import java.util.ArrayList;
 public class BookDetailsFragment extends Fragment{
     TextView bookName,text_author,text_yearpublish;
     ImageView imageView;
-
     Book book;
+    Button play_btn,pasuse_btn,stop_btn;
+
+    public interface Callback {
+        public void onClickButton(int number,int id);
+    }
+
+    private Callback callback;
+
+    @Override
+    public void onAttach(Activity ac) {
+        super.onAttach(ac);
+        callback = (Callback) ac;
+    }
+
+    @Override
+    public void onDetach() {
+        callback = null;
+        super.onDetach();
+    }
 
     @Override
     public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
@@ -29,6 +49,14 @@ public class BookDetailsFragment extends Fragment{
         bookName = (TextView) view.findViewById(R.id.bookName);
         text_author = (TextView) view.findViewById(R.id.text_author);
         text_yearpublish = (TextView) view.findViewById(R.id.text_yearpublished);
+        play_btn =view.findViewById(R.id.play_button);
+        pasuse_btn =view.findViewById(R.id.pause_button);
+        stop_btn =view.findViewById(R.id.stop_button);
+
+        play_btn.setOnClickListener(this);
+        pasuse_btn.setOnClickListener(this);
+        stop_btn.setOnClickListener(this);
+
 
         if (arrList.isVer == false) {
             //do work for landscape
@@ -37,13 +65,15 @@ public class BookDetailsFragment extends Fragment{
         bookName.setTextColor(0xFF00FF00);
 
         Glide.with(this).load(book.getCoverURL()).into(imageView);
-
         text_author.setText(book.getAuthor());
         text_yearpublish.setText(book.getPublished()+"");
 
         return view;
     }
 
+    @Override
+    public void onClick(View v)
+    {}
 
     public static class bookActivity extends FragmentActivity
     {

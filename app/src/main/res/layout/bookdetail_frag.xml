@@ -58,8 +58,42 @@
         </LinearLayout>
 
 
-    </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
+            <Button
+                android:layout_weight="1"
+                android:id="@+id/play_button"
+                android:text="Play"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:layout_weight="1"
+                android:id="@+id/pause_button"
+                android:text="Pause"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:layout_weight="1"
+                android:id="@+id/stop_button"
+                android:text="Stop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <SeekBar
+            android:id="@+id/seekbar_"
+            android:layout_margin="15dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+
+    </LinearLayout>
 
 
 
