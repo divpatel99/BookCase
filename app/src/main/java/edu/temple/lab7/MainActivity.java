@@ -1,7 +1,10 @@
 package edu.temple.lab7;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.os.PersistableBundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
@@ -30,6 +33,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends AppCompatActivity implements BookListFragment.OnItemSelectedListener, BookDetailsFragment.Callback, customAdapter.Callback_Adapter {
@@ -194,8 +199,9 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 String author=response.getJSONObject(i).getString("author");
                 int published=response.getJSONObject(i).getInt("published");
                 String cover_url=response.getJSONObject(i).getString("cover_url");
+                int duration =response.getJSONObject(i).getInt("duration");
 
-                Book book = new Book(id,title,author,published,cover_url);
+                Book book = new Book(id,title,author,published,cover_url,duration);
                 arrList.allBooksArraylist.add(book);
             }
 
@@ -206,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
 
             }else
-                table.setAdapter(new customAdapter( arrList.allBooksArraylist,MainActivity.this));
+                table.setAdapter(new customAdapter( arrList.allBooksArraylist,MainActivity.this,this));
 
 
 
@@ -233,4 +239,69 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mServiceBound) {
+            unbindService(mServiceConnection);
+            mServiceBound = false;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        mediaControlBinder.stop();
+    }
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mServiceBound = false;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mediaControlBinder = (AudiobookService.MediaControlBinder) service;
+            audiobookService = mediaControlBinder.getService();
+            mServiceBound = true;
+
+
+
+        }
+    };
+
+
+    @Override
+    public void onClickButton(int number,int id)
+    {
+        switch (number)
+        {
+            case 1:
+                mediaControlBinder.play(id);
+                break;
+            case 2:
+                mediaControlBinder.pause();
+                break;
+            case 3:
+                mediaControlBinder.stop();
+                break;
+            case 4:
+                mediaControlBinder.seekTo(id);
+
+
+        }
+
+
+        new Timer().scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run()
+            {
+                //your method
+            }
+        }, 0, 1000);//put here time 1000 milliseconds=1 second
+
+    }
 }

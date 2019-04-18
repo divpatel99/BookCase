@@ -188,23 +188,71 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
     }
 
     @Override
-    public boolean onUnbind(Intent intent) {}
+    public boolean onUnbind(Intent intent) {
+        progressHandler = null;
+        return super.onUnbind(intent);
+    }
 
     @Override
-    public void onDestroy() {}
+    public void onDestroy() {
+        super.onDestroy();
+        mediaPlayer.release();
+    }
 
-    private void createNotificationChannel(){}
+    private void createNotificationChannel(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "Channel Name";
+            String description = "Channel Description";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
+            }
+        }
+    }
 
     @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {}
+    public void onPrepared(MediaPlayer mediaPlayer) {
+        Log.i(TAG, "Audiobook prepared");
+        playingState = 1;
+        if (startPosition > 0) {
+            mediaPlayer.seekTo(1000 * startPosition);
+            startPosition = 0;
+        }
+
+        mediaPlayer.start();
+        progressThread = new Thread(new NotifyProgress());
+        progressThread.start();
+        Log.i(TAG, "Audiobook started");
+    }
 
     @Override
-    public void onCompletion(MediaPlayer mp) {}
+    public void onCompletion(MediaPlayer mp) {
+        mp.reset();
+        progressThread = null;
+    }
 
     class NotifyProgress implements Runnable {
 
         @Override
         public void run() {
+            while (playingState == 1) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Log.i(TAG, "Progress update stopped");
+                }
+                if (progressHandler != null) {
+                    if (playingState == 1) {
+                        progressHandler.sendEmptyMessage(mediaPlayer.getCurrentPosition() / 1000);
+                        Log.e("wah", String.valueOf(mediaPlayer.getCurrentPosition() / 1000));
+                    }
+                    else if (playingState == 0)
+                        progressHandler.sendEmptyMessage(0);
+                }
+            }
         }
 
 
