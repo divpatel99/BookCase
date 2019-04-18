@@ -63,6 +63,7 @@ public class customAdapter extends PagerAdapter {
         text_year = viewframe.findViewById(R.id.text_yearpublished);
         bookName = viewframe.findViewById(R.id.bookName);
         imageView =viewframe.findViewById(R.id.imageview);
+        seekBar=viewframe.findViewById(R.id.seekbar_);
 
         play_btn =viewframe.findViewById(R.id.play_button);
         pasuse_btn =viewframe.findViewById(R.id.pause_button);
