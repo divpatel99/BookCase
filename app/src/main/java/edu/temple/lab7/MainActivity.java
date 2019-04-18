@@ -1,5 +1,6 @@
 package edu.temple.lab7;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.PersistableBundle;
 import android.support.v4.app.FragmentTransaction;
@@ -31,13 +32,17 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 
-public class MainActivity extends AppCompatActivity implements BookListFragment.OnItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements BookListFragment.OnItemSelectedListener, BookDetailsFragment.Callback, customAdapter.Callback_Adapter {
 
     boolean inFrame = false;
     ViewPager table;
     EditText editText;
     Button button_Search;
     BookListFragment listFrag;
+
+    AudiobookService audiobookService;
+    boolean mServiceBound = false;
+    AudiobookService.MediaControlBinder mediaControlBinder;
 
 
     @Override
@@ -50,11 +55,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         //////////////
         table = findViewById(R.id.page);
 
-       /* if (savedInstanceState!=null)
-        {
-            arrList.allBooksArraylist = (ArrayList<Book>) savedInstanceState.get("array");
-        }
-        else*/
+
         {
             getBooks_request("");
         }
@@ -75,21 +76,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         });
     }
 
-   /* @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
-
-        outState.putSerializable("array",arrList.allBooksArraylist);
-
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
-        arrList.allBooksArraylist = (ArrayList<Book>) savedInstanceState.get("array");
-    }
-    */
 
 
     @Override
@@ -230,6 +216,19 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             Log.e("wahwah",e.getMessage());
             e.printStackTrace();
         }
+
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, AudiobookService.class);
+        //pass data through intent
+        // intent.putExtra("ID",1);
+        startService(intent);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+
 
 
     }

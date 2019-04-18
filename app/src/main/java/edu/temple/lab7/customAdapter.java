@@ -5,8 +5,10 @@ import android.support.v4.view.PagerAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.SeekBar;
 
 import com.bumptech.glide.Glide;
 
@@ -22,11 +24,22 @@ public class customAdapter extends PagerAdapter {
     ViewGroup viewframe;
     Context context;
 
-    customAdapter(ArrayList<Book> listing,Context context)
+    Button play_btn,pasuse_btn,stop_btn;
+    SeekBar seekBar;
+
+    private Runnable mRunnable;
+
+    public interface Callback_Adapter {
+        public void onClickButton(int number,int id);
+    }
+    private  Callback_Adapter callback;
+
+    customAdapter(ArrayList<Book> listing,Context context, Callback_Adapter callback)
     {
 
         this.listing = listing;
         this.context = context;
+        this.callback = callback;
 
     }
 
@@ -42,7 +55,7 @@ public class customAdapter extends PagerAdapter {
     }
 
     @Override
-    public Object instantiateItem(ViewGroup container, int position) {
+    public Object instantiateItem(ViewGroup container,final int position) {
         LayoutInflater inflater = LayoutInflater.from(context);
         viewframe = (ViewGroup) inflater.inflate(R.layout.bookdetail_frag, container,
                 false);
@@ -50,6 +63,57 @@ public class customAdapter extends PagerAdapter {
         text_year = viewframe.findViewById(R.id.text_yearpublished);
         bookName = viewframe.findViewById(R.id.bookName);
         imageView =viewframe.findViewById(R.id.imageview);
+
+        play_btn =viewframe.findViewById(R.id.play_button);
+        pasuse_btn =viewframe.findViewById(R.id.pause_button);
+        stop_btn =viewframe.findViewById(R.id.stop_button);
+
+
+        seekBar.setMax(listing.get(position).getDuration());
+
+        play_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                callback.onClickButton(1,listing.get(position).getId());
+            }
+        });
+        pasuse_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                callback.onClickButton(2,listing.get(position).getId());
+            }
+        });
+        stop_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                callback.onClickButton(3,listing.get(position).getId());
+            }
+        });
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+            {
+                callback.onClickButton(4,progress);
+
+
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
         bookName.setText(listing.get(position).getTitle());
         bookName.setTextColor(0xFF00FF00);
 
