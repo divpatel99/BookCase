@@ -15,6 +15,8 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 
 public class AudiobookService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
@@ -56,25 +58,96 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
     }
 
     @Override
-    public IBinder onBind(Intent intent){
+    public IBinder onBind(Intent intent) {
+        Log.i(TAG, "Player bound");
+        //receive data here
 
+
+     /*  int id= intent.getIntExtra("ID",1);
+
+        binder.play(id);*/
+        return binder;
     }
 
     private void setHandler (Handler handler) {}
 
-    private void play(int id) {}
+    private void play(int id) {
+        try {
+            mediaPlayer.reset();
+            String BOOK_DOWNLOAD_URL = "https://kamorris.com/lab/audlib/download.php?id=";
+            mediaPlayer.setDataSource(BOOK_DOWNLOAD_URL + id);
+            playingState = 0;
+            mediaPlayer.prepareAsync();
+            Log.i(TAG, "Audiobook preparing");
+            int FOREGROUND_CODE = 1;
+            startForeground(FOREGROUND_CODE, notification);
+            Log.i(TAG, "Foreground notification started");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-    private void play(int id, int position) {}
+    private void play(int id, int position) {
+        startPosition = position;
+        play(id);
+    }
 
-    private void play(File file) {}
+    private void play(File file) {
+        try {
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource((new FileInputStream(file)).getFD());
+            playingState = 0;
+            mediaPlayer.prepareAsync();
+            Log.i(TAG, "Audiobook preparing");
+            int FOREGROUND_CODE = 1;
+            startForeground(FOREGROUND_CODE, notification);
+            Log.i(TAG, "Foreground notification started");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-    private void play(File file, int position) {}
+    private void play(File file, int position) {
+        startPosition = position;
+        play(file);
+    }
 
-    private void pause () {}
+    private void pause () {
+        if (playingState == 1) {
+            playingState = 2;
+            mediaPlayer.pause();
+            if (progressThread != null) {
+                progressThread.interrupt();
+                progressThread = null;
+            }
+            Log.i(TAG, "Player paused");
+        } else if (playingState == 2) {
+            playingState = 1;
+            mediaPlayer.start();
+            progressThread = new Thread(new NotifyProgress());
+            progressThread.start();
+            Log.i(TAG, "Player started");
+        }
+    }
 
-    private void stop() {}
+    private void stop() {
+        mediaPlayer.stop();
+        playingState = 0;
+        stopForeground(true);
+        if (progressThread != null) {
+            progressThread.interrupt();
+            progressThread = null;
+        }
+        Log.i(TAG, "Player stopped");
+    }
 
-    private void seekTo(int position) {}
+    private void seekTo(int position) {
+        position = position * 1000;
+        if (position <= mediaPlayer.getDuration()) {
+            mediaPlayer.seekTo((position));
+            Log.i(TAG, "Audiobook position changed");
+        }
+    }
 
     public class MediaControlBinder extends Binder {
         public void play(int id) {
@@ -132,10 +205,10 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
 
         @Override
         public void run() {
+        }
+
+
     }
-
-
-
 
 
 
