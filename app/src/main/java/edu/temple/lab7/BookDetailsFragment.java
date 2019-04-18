@@ -17,7 +17,7 @@ import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 
-public class BookDetailsFragment extends Fragment{
+public class BookDetailsFragment extends Fragment implements View.OnClickListener{
     TextView bookName,text_author,text_yearpublish;
     ImageView imageView;
     Book book;
@@ -73,7 +73,20 @@ public class BookDetailsFragment extends Fragment{
 
     @Override
     public void onClick(View v)
-    {}
+    {
+        if (v.getId() == pasuse_btn.getId())
+        {
+            callback.onClickButton(2,book.getId());
+        }
+        else if (v.getId() == stop_btn.getId())
+        {
+            callback.onClickButton(3,book.getId());
+        }
+        else if (v.getId() == play_btn.getId())
+        {
+            callback.onClickButton(1,book.getId());
+        }
+    }
 
     public static class bookActivity extends FragmentActivity
     {
