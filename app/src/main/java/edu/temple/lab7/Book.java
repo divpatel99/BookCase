@@ -9,14 +9,16 @@ public class Book implements Serializable {
     String author;
     int published;
     String coverURL;
+    int duration;
 
 
-    public Book(int id, String title, String author, int published, String coverURL) {
+    public Book(int id, String title, String author, int published, String coverURL, int duration) {
         this.id = id;
         this.title = title;
         this.author = author;
         this.published = published;
         this.coverURL = coverURL;
+        this.duration = duration;
     }
 
     public int getId() {
@@ -58,4 +60,13 @@ public class Book implements Serializable {
     public void setCoverURL(String coverURL) {
         this.coverURL = coverURL;
     }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
 }
