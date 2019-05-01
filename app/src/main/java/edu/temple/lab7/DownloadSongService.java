@@ -36,5 +36,27 @@ public class DownloadSongService extends IntentService {
         String checkSAVEDB= intent.getStringExtra(SAVE_DB);
         startDownload(downloadPath, destinationPath,checkSAVEDB);
     }
-   
+
+    private void startDownload(String downloadPath, String destinationPath,String saveDB) {
+        Uri uri = Uri.parse(downloadPath); // Path where you want to download file.
+
+        DownloadManager.Request request = new DownloadManager.Request(uri);
+
+        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);  // Tell on which network you want to download file.
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);  // This will show notification on top when downloading the file.
+        request.setTitle("Downloading a file"); // Title for notification.
+        request.setVisibleInDownloadsUi(true);
+        request.setDestinationInExternalPublicDir(destinationPath, uri.getLastPathSegment());  // Storage directory path
+        if(saveDB.equals("No")) {
+            fileImageName = uri.getLastPathSegment();
+        }
+        ((DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE)).enqueue(request); // This will start downloading
+        if(saveDB.equals("Yes")){
+            String saveImageMP3=destinationPath+":"+fileImageName+":"+uri.getLastPathSegment();
+            db.insertNote(Utils.insertBDBook.get(0).getId(),Utils.insertBDBook.get(0).getAuthor(),String.valueOf(Utils.insertBDBook.get(0).getDuration()),String.valueOf(Utils.insertBDBook.get(0).getPublished()),saveImageMP3,Utils.insertBDBook.get(0).getTitle());
+            Utils.arraylistBookDB.clear();
+            Utils.arraylistBookDB.addAll(db.getAllNotes());
+        }
+    }
+
 }
