@@ -53,6 +53,7 @@ public class BookListFragment extends Fragment {
             }
         });
         return view;
+
     }
 
     public void my_work(ArrayList<Book> bookArrayList)

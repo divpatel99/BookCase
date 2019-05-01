@@ -14,39 +14,44 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.bumptech.glide.util.Util;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import edu.temple.lab7.listner.UpdateSeekBar;
 
 public class AudiobookService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
 
     private final MediaControlBinder binder = new MediaControlBinder();
     private static final String TAG = "Audiobook Service";
-    MediaPlayer mediaPlayer = new MediaPlayer();
+    static MediaPlayer mediaPlayer = new MediaPlayer();
     Notification notification;
     Handler progressHandler;
     Thread progressThread;
     int playingState; // 0 - stopped, 1 - playing, 2 - paused
     int startPosition;
 
+    private Prefes prefes;
     private final String NOTIFICATION_CHANNEL_ID = "media_player_control";
 
-    public AudiobookService() {
-    }
+    private UpdateSeekBar updateSeekBars;
+    public AudiobookService() {}
 
     @Override
     public void onCreate() {
         super.onCreate();
 
+        prefes=new Prefes(this,Utils.SAVE_MEDIA_PLAYER_PREF);
         createNotificationChannel();
 
         mediaPlayer.setAudioAttributes(new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
         mediaPlayer.setOnPreparedListener(this);
         mediaPlayer.setOnCompletionListener(this);
 
-        String NOTIFICATION_PLAYING_TITLE = "Title";
-        String NOTIFICATION_PLAYING_DESCRIPTION = "Description";
+        String NOTIFICATION_PLAYING_TITLE = prefes.getValue(Utils.SAVE_MEDIA_TN,"Title");
+        String NOTIFICATION_PLAYING_DESCRIPTION = prefes.getValue(Utils.SAVE_MEDIA_ND,"Description");
 
         notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setContentTitle(NOTIFICATION_PLAYING_TITLE)
@@ -69,7 +74,10 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
         return binder;
     }
 
-    private void setHandler (Handler handler) {}
+    private void setHandler (Handler handler) {
+        Log.i(TAG, "Handler set");
+        progressHandler = handler;
+    }
 
     private void play(int id) {
         try {
@@ -120,6 +128,7 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
                 progressThread.interrupt();
                 progressThread = null;
             }
+
             Log.i(TAG, "Player paused");
         } else if (playingState == 2) {
             playingState = 1;
@@ -128,6 +137,9 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
             progressThread.start();
             Log.i(TAG, "Player started");
         }
+        prefes.setBool(Utils.SAVE_MEDIA_PLAYING,mediaPlayer.isPlaying());
+        prefes.setInt(Utils.SAVE_MEDIA_PLAYER_POSITION,mediaPlayer.getCurrentPosition()/1000);
+        prefes.setInt(prefes.getValue(Utils.BOOK_ID,""),mediaPlayer.getCurrentPosition()/1000);
     }
 
     private void stop() {
@@ -138,8 +150,13 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
             progressThread.interrupt();
             progressThread = null;
         }
+        prefes.setBool(Utils.SAVE_MEDIA_PLAYING,mediaPlayer.isPlaying());
+        prefes.setInt(Utils.SAVE_MEDIA_PLAYER_POSITION,0);
+        prefes.setInt(prefes.getValue(Utils.BOOK_ID,""),0);
+
         Log.i(TAG, "Player stopped");
     }
+
 
     private void seekTo(int position) {
         position = position * 1000;
@@ -147,9 +164,14 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
             mediaPlayer.seekTo((position));
             Log.i(TAG, "Audiobook position changed");
         }
+        prefes.setBool(Utils.SAVE_MEDIA_PLAYING,mediaPlayer.isPlaying());
+        prefes.setInt(Utils.SAVE_MEDIA_PLAYER_POSITION,mediaPlayer.getCurrentPosition()/1000);
+        prefes.setInt(prefes.getValue(Utils.BOOK_ID,""),mediaPlayer.getCurrentPosition()/1000);
+
     }
 
     public class MediaControlBinder extends Binder {
+
         public void play(int id) {
             AudiobookService.this.play(id);
         }
@@ -168,6 +190,7 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
 
         public void pause() {
             AudiobookService.this.pause();
+
         }
 
         public void stop() {
@@ -185,6 +208,34 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
         public AudiobookService getService() {
             return AudiobookService.this;
         }
+        public void updateS(UpdateSeekBar updateSeekBar) {
+            updateSeekBars=updateSeekBar;
+        }
+
+        public void savemediaPlayerState(){
+            prefes.setBool(Utils.SAVE_MEDIA_PLAYING,mediaPlayer.isPlaying());
+            prefes.setInt(Utils.SAVE_MEDIA_PLAYER_POSITION,mediaPlayer.getCurrentPosition()/1000);
+            prefes.setInt(prefes.getValue(Utils.BOOK_ID,""),mediaPlayer.getCurrentPosition()/1000);
+
+        }
+        public void restoreMediaPalyerState(){
+            //   mediaPlayer.seekTo(prefes.getInt(Utils.SAVE_MEDIA_PLAYER_POSITION,0));
+        }
+        public void saveCurrentMP(){
+            mediaPlayer.stop();
+            playingState = 0;
+            stopForeground(true);
+            if (progressThread != null) {
+                progressThread.interrupt();
+                progressThread = null;
+            }
+            prefes.setBool(Utils.SAVE_MEDIA_PLAYING,mediaPlayer.isPlaying());
+            prefes.setInt(Utils.SAVE_MEDIA_PLAYER_POSITION,mediaPlayer.getCurrentPosition()/1000);
+            prefes.setInt(prefes.getValue(Utils.BOOK_ID,""),mediaPlayer.getCurrentPosition()/1000);
+
+            Log.i(TAG, "Player stopped");
+        }
+
     }
 
     @Override
@@ -199,7 +250,7 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
         mediaPlayer.release();
     }
 
-    private void createNotificationChannel(){
+    private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "Channel Name";
             String description = "Channel Description";
@@ -207,6 +258,8 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
             NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance);
             channel.setDescription(description);
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channel.getId());
+            builder.setContentTitle(prefes.getValue(Utils.SAVE_MEDIA_TN,"Title")).setContentText(prefes.getValue(Utils.SAVE_MEDIA_TN,"Description")).setSmallIcon(R.mipmap.ic_launcher);
             if (notificationManager != null) {
                 notificationManager.createNotificationChannel(channel);
             }
@@ -225,7 +278,12 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
         mediaPlayer.start();
         progressThread = new Thread(new NotifyProgress());
         progressThread.start();
+        prefes.setBool(Utils.SAVE_MEDIA_PLAYING,mediaPlayer.isPlaying());
+        prefes.setInt(Utils.SAVE_MEDIA_PLAYER_POSITION,mediaPlayer.getCurrentPosition()/1000);
+        prefes.setInt(prefes.getValue(Utils.BOOK_ID,""),mediaPlayer.getCurrentPosition()/1000);
+
         Log.i(TAG, "Audiobook started");
+
     }
 
     @Override
@@ -248,6 +306,9 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
                     if (playingState == 1) {
                         progressHandler.sendEmptyMessage(mediaPlayer.getCurrentPosition() / 1000);
                         Log.e("wah", String.valueOf(mediaPlayer.getCurrentPosition() / 1000));
+                        updateSeekBars.updateSeekbar(mediaPlayer.getCurrentPosition()/1000,mediaPlayer.getDuration()/1000);
+                        //Log.e(TAG, "run: "+mediaPlayer.getCurrentPosition() / 1000 );
+
                     }
                     else if (playingState == 0)
                         progressHandler.sendEmptyMessage(0);
@@ -255,10 +316,6 @@ public class AudiobookService extends Service implements MediaPlayer.OnPreparedL
             }
         }
 
-
     }
-
-
-
 
 }

@@ -4,6 +4,27 @@ import java.io.Serializable;
 
 public class Book implements Serializable {
 
+    public static final String TABLE_NAME = "books";
+
+    public static final String COLUMN_ID = "id";
+    public static final String COLUMN_TITLE = "title";
+    public static final String COLUMN_Author = "author";
+    public static final String COLUMN_PUBLISHER = "publisher";
+    public static final String COLUMN_IMAGE = "coverurl";
+    public static final String COLUMN_DURATION = "duration";
+    public static final String COLUMN_TIMESTAMP = "timestamp";
+    // Create table SQL query
+    public static final String CREATE_TABLE =
+            "CREATE TABLE " + TABLE_NAME + "("
+                    + COLUMN_ID + " INTEGER PRIMARY KEY,"
+                    + COLUMN_TITLE + " TEXT,"
+                    + COLUMN_Author + " TEXT,"
+                    + COLUMN_PUBLISHER + " TEXT,"
+                    + COLUMN_DURATION + " TEXT,"
+                    + COLUMN_IMAGE + " TEXT,"
+                    + COLUMN_TIMESTAMP + " DATETIME DEFAULT CURRENT_TIMESTAMP"
+                    + ")";
+
     int id;
     String title;
     String author;
@@ -11,6 +32,8 @@ public class Book implements Serializable {
     String coverURL;
     int duration;
 
+    public Book() {
+    }
 
     public Book(int id, String title, String author, int published, String coverURL, int duration) {
         this.id = id;
@@ -18,8 +41,10 @@ public class Book implements Serializable {
         this.author = author;
         this.published = published;
         this.coverURL = coverURL;
-        this.duration = duration;
+        this.duration =duration;
     }
+
+
 
     public int getId() {
         return id;
@@ -68,5 +93,4 @@ public class Book implements Serializable {
     public void setDuration(int duration) {
         this.duration = duration;
     }
-
 }

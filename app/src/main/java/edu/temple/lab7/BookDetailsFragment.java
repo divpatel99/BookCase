@@ -12,19 +12,21 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 
-public class BookDetailsFragment extends Fragment implements View.OnClickListener{
+public class BookDetailsFragment extends Fragment implements View.OnClickListener {
     TextView bookName,text_author,text_yearpublish;
     ImageView imageView;
     Book book;
     Button play_btn,pasuse_btn,stop_btn;
 
+
     public interface Callback {
-        public void onClickButton(int number,int id);
+        public void onClickButton(int number,int id,String file);
     }
 
     private Callback callback;
@@ -41,6 +43,8 @@ public class BookDetailsFragment extends Fragment implements View.OnClickListene
         super.onDetach();
     }
 
+
+
     @Override
     public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
         View view = inflater.inflate(R.layout.bookdetail_frag, container, false);
@@ -53,9 +57,11 @@ public class BookDetailsFragment extends Fragment implements View.OnClickListene
         pasuse_btn =view.findViewById(R.id.pause_button);
         stop_btn =view.findViewById(R.id.stop_button);
 
+
         play_btn.setOnClickListener(this);
         pasuse_btn.setOnClickListener(this);
         stop_btn.setOnClickListener(this);
+
 
 
         if (arrList.isVer == false) {
@@ -76,17 +82,18 @@ public class BookDetailsFragment extends Fragment implements View.OnClickListene
     {
         if (v.getId() == pasuse_btn.getId())
         {
-            callback.onClickButton(2,book.getId());
+            callback.onClickButton(2,book.getId(),"");
         }
         else if (v.getId() == stop_btn.getId())
         {
-            callback.onClickButton(3,book.getId());
+            callback.onClickButton(3,book.getId(),"");
         }
         else if (v.getId() == play_btn.getId())
         {
-            callback.onClickButton(1,book.getId());
+            callback.onClickButton(1,book.getId(),"");
         }
     }
+
 
     public static class bookActivity extends FragmentActivity
     {

@@ -1,12 +1,16 @@
 package edu.temple.lab7;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
+import android.os.Handler;
 import android.os.IBinder;
-import android.os.PersistableBundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,24 +21,27 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.content.res.Configuration;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.util.ArrayList;
+import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import edu.temple.lab7.dbHelper.DatabaseHelper;
+import edu.temple.lab7.listner.UpdateSeekBar;
+import edu.temple.lab7.listner.checkPermission;
 
 
 public class MainActivity extends AppCompatActivity implements BookListFragment.OnItemSelectedListener, BookDetailsFragment.Callback, customAdapter.Callback_Adapter {
@@ -44,26 +51,58 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     EditText editText;
     Button button_Search;
     BookListFragment listFrag;
-
+    private static final int MY_READ_REQUEST = 1;
     AudiobookService audiobookService;
     boolean mServiceBound = false;
     AudiobookService.MediaControlBinder mediaControlBinder;
+    private Prefes prefes;
+    SeekBar seekBar;
+    Handler handler;
+    Runnable r;
+    private DatabaseHelper db;
 
-
+    private customAdapter customAdapters;
+    private TextView timeTV;
+    private UpdateSeekBar updateSeekBar;
+    private edu.temple.lab7.listner.checkPermission checkPermissions;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        askPermission();
+        prefes=new Prefes(getApplicationContext(),Utils.SAVE_MEDIA_PLAYER_PREF);
+        timeTV=(TextView)findViewById(R.id.time);
+        handler=new Handler();
+        r = new Runnable(){
+            public void run() {
+
+                // Toast.makeText(getApplicationContext(),"Testing......."+AudiobookService.,Toast.LENGTH_SHORT).show();
+                handler.postDelayed(r, 1000);
+            }
+        };
+
+        db = new DatabaseHelper(this);
+        Utils.arraylistBookDB.clear();
+        Utils.arraylistBookDB.addAll(db.getAllNotes());
+
         /////////////////
         editText =findViewById(R.id.edit_text);
         button_Search=findViewById(R.id.button_search);
         //////////////
         table = findViewById(R.id.page);
 
+        checkPermissions=new checkPermission() {
+            @Override
+            public void checkRW(boolean permission) {
+                askPermission();
+            }
+        };
 
         {
-            getBooks_request("");
+            getBooks_request(prefes.getValue(Utils.SEARCH_API,""));
         }
+
 
         button_Search.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -74,30 +113,124 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     return;
                 }
                 {
+                    mediaControlBinder.setProgressHandler(null);
+                    mediaControlBinder.saveCurrentMP();
+                    seekBar.setMax(0);
+                    seekBar.setProgress(0);
+                    prefes.setValue(Utils.SEARCH_API,editText.getText().toString());
                     getBooks_request(editText.getText().toString());
                 }
 
             }
         });
+        seekBar=findViewById(R.id.seekbar_);
+
+        updateSeekBar=new UpdateSeekBar() {
+            @Override
+            public void updateSeekbar(final int position, final int time) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        final long minutes_total=(time)/60;
+                        final int seconds_total= (int) ((time)%60);
+                        final long minutes_current=(position)/60;
+                        final int seconds_current= (int) ((position)%60);
+                        timeTV.setText(minutes_current+":"+seconds_current+"/"+minutes_total+":"+seconds_total);
+                        seekBar.setMax(time);
+                        seekBar.setProgress(position);
+
+
+
+                    }
+                });
+            }
+        };
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+            {
+                /* seekBar.setMax(AudiobookService.mediaPlayer.getDuration());*/
+                //   seekBar.setProgress(progress);
+                if(fromUser) {
+                    mediaControlBinder.seekTo(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+
+        DirectoryHelper.createDirectory(this);
+
     }
 
+    public void askPermission(){
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) &&
+                    ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_READ_REQUEST);
+            } else {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_READ_REQUEST);
+            }
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode){
+            case MY_READ_REQUEST: {
+                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
+                    if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+                        DirectoryHelper.createDirectory(this);
+                    }
+                }else {
 
+                }
+                return;
+            }
+        }
+    }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
-        // Checks the orientation of the screen
+
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             arrList.isLan = true;
         } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             arrList.isVer = true;
         }
 
-
+        /*if(mediaControlBinder!=null)
+            mediaControlBinder.savemediaPlayerState();
+*/
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+    }
 
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    {
+
+        super.onRestoreInstanceState(savedInstanceState);
+
+    }
 
     public void layoutLocate()
     {
@@ -211,9 +344,11 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 layoutLocate();
 
 
-            }else
-                table.setAdapter(new customAdapter( arrList.allBooksArraylist,MainActivity.this,this));
+            }else {
 
+
+                table.setAdapter(new customAdapter(arrList.allBooksArraylist, MainActivity.this, this,checkPermissions));
+            }
 
 
 
@@ -226,6 +361,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
     }
 
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -234,17 +370,24 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         // intent.putExtra("ID",1);
         startService(intent);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-
-
+        //  handler.post(r);
+        if(prefes.getBool(Utils.SAVE_MEDIA_PLAYING,false)){
+            Toast.makeText(this,"POsition"+prefes.getInt(Utils.SAVE_MEDIA_PLAYER_POSITION,0),Toast.LENGTH_SHORT).show();
+        }
 
     }
+
+
+
 
     @Override
     protected void onStop() {
         super.onStop();
+
         if (mServiceBound) {
             unbindService(mServiceConnection);
             mServiceBound = false;
+            //  handler.removeCallbacks(r);
         }
     }
 
@@ -252,13 +395,16 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     protected void onDestroy() {
         super.onDestroy();
 
-        mediaControlBinder.stop();
+        // mediaControlBinder.stop();
+        mediaControlBinder.savemediaPlayerState();
+        //  handler.removeCallbacks(r);
     }
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            mediaControlBinder.setProgressHandler(null);
             mServiceBound = false;
         }
 
@@ -266,6 +412,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         public void onServiceConnected(ComponentName name, IBinder service) {
             mediaControlBinder = (AudiobookService.MediaControlBinder) service;
             audiobookService = mediaControlBinder.getService();
+            mediaControlBinder.updateS(updateSeekBar);
+            mediaControlBinder.setProgressHandler(handler);
             mServiceBound = true;
 
 
@@ -275,23 +423,55 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
 
     @Override
-    public void onClickButton(int number,int id)
+    public void onClickButton(int number,int id,String file)
     {
+
         switch (number)
         {
             case 1:
-                mediaControlBinder.play(id);
+                if(AudiobookService.mediaPlayer.isPlaying()){
+                    mediaControlBinder.setProgressHandler(null);
+                    mediaControlBinder.saveCurrentMP();
+                    seekBar.setMax(0);
+                    seekBar.setProgress(0);
+                }
+                int position= prefes.getInt(String.valueOf(id),0);
+                prefes.setValue(Utils.BOOK_ID,String.valueOf(id));
+                mediaControlBinder.play(id,position);
+                Toast.makeText(this,"Playing: From Url",Toast.LENGTH_SHORT).show();
+                mediaControlBinder.setProgressHandler(handler);
+                // handler.post(r);
                 break;
             case 2:
                 mediaControlBinder.pause();
+                mediaControlBinder.setProgressHandler(null);
+                Toast.makeText(this,prefes.getBool(Utils.SAVE_MEDIA_PLAYING,false)+"MediaPosition"+prefes.getInt(Utils.SAVE_MEDIA_PLAYER_POSITION,0),Toast.LENGTH_SHORT).show();
+
                 break;
             case 3:
                 mediaControlBinder.stop();
+                mediaControlBinder.setProgressHandler(null);
+                seekBar.setMax(0);
+                seekBar.setProgress(0);
+                timeTV.setText("0:0");
                 break;
             case 4:
                 mediaControlBinder.seekTo(id);
-
-
+                break;
+            case 5  :
+                if(AudiobookService.mediaPlayer.isPlaying()){
+                    mediaControlBinder.setProgressHandler(null);
+                    mediaControlBinder.saveCurrentMP();
+                    seekBar.setMax(0);
+                    seekBar.setProgress(0);
+                }
+                int positions= prefes.getInt(String.valueOf(id),0);
+                prefes.setValue(Utils.BOOK_ID,String.valueOf(id));
+                File soundFile = new  File(file);
+                Toast.makeText(this,"Playing:"+soundFile,Toast.LENGTH_SHORT).show();
+                mediaControlBinder.setProgressHandler(handler);
+                mediaControlBinder.play(soundFile,positions);
+                break;
         }
 
 
@@ -304,4 +484,5 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         }, 0, 1000);//put here time 1000 milliseconds=1 second
 
     }
+
 }

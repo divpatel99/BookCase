@@ -1,6 +1,5 @@
 package edu.temple.lab7;
 
-
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.support.annotation.NonNull;
