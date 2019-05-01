@@ -34,14 +34,39 @@
     </LinearLayout>
 
 
-    <android.support.v4.view.ViewPager
-        android:id="@+id/page"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:weightSum="1">
+        <android.support.v4.view.ViewPager
+            android:id="@+id/page"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight=".9">
 
-    </android.support.v4.view.ViewPager>
+        </android.support.v4.view.ViewPager>
 
-
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:layout_gravity="end"
+                android:layout_marginRight="20dp"
+                android:id="@+id/time"
+                android:text="00:00"/>
+            <SeekBar
+                android:id="@+id/seekbar_"
+                android:layout_margin="15dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight=".1"/>
+        </LinearLayout>
+    </LinearLayout>
 
 
 </LinearLayout>

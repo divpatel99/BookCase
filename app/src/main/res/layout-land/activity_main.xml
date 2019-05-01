@@ -47,15 +47,44 @@
             android:layout_weight="1"
             tools:layout="@layout/booklist_frag" />
 
-
-        <FrameLayout
-            android:id="@+id/bookHolder"
+        <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="3" />
+            android:orientation="vertical"
+            android:layout_weight="3" >
 
+            <FrameLayout
+                android:id="@+id/bookHolder"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@id/seekbar_ll"
+                />
+            <LinearLayout
+                android:id="@+id/seekbar_ll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
 
+                android:layout_alignParentBottom="true">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:layout_gravity="end"
+                    android:layout_marginRight="20dp"
+                    android:id="@+id/time"
+                    android:text="00:00"/>
+                <SeekBar
+                    android:id="@+id/seekbar_"
+                    android:layout_margin="15dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".1"/>
+            </LinearLayout>
+        </RelativeLayout>
 
     </LinearLayout>
 
 </LinearLayout>
+
+

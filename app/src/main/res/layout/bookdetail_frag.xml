@@ -15,7 +15,7 @@
             android:id="@+id/imageview"
             android:src="@drawable/ic_launcher_background"
             android:layout_width="wrap_content"
-            android:layout_height="250dp" />
+            android:layout_height="220dp" />
 
 
         <LinearLayout
@@ -55,8 +55,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <Button
+                    android:layout_weight="1"
+                    android:id="@+id/download_btn"
+                    android:text="download"
+                    android:textSize="12sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <Button
+                    android:layout_weight="1"
+                    android:id="@+id/deleted_btn"
+                    android:text="delete"
+                    android:textSize="12sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
         </LinearLayout>
-
 
         <LinearLayout
             android:orientation="horizontal"
@@ -90,10 +108,12 @@
             android:id="@+id/seekbar_"
             android:layout_margin="15dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:visibility="gone"/>
 
 
     </LinearLayout>
+
 
 
 
