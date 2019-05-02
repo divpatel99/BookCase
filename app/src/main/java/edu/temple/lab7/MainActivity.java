@@ -372,7 +372,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
         //  handler.post(r);
         if(prefes.getBool(Utils.SAVE_MEDIA_PLAYING,false)){
-            Toast.makeText(this,"POsition"+prefes.getInt(Utils.SAVE_MEDIA_PLAYER_POSITION,0),Toast.LENGTH_SHORT).show();
+            //  Toast.makeText(this,"POsition"+prefes.getInt(Utils.SAVE_MEDIA_PLAYER_POSITION,0),Toast.LENGTH_SHORT).show();
         }
 
     }
@@ -438,14 +438,14 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 int position= prefes.getInt(String.valueOf(id),0);
                 prefes.setValue(Utils.BOOK_ID,String.valueOf(id));
                 mediaControlBinder.play(id,position);
-                Toast.makeText(this,"Playing: From Url",Toast.LENGTH_SHORT).show();
+                Toast.makeText(this,"Playing:from url",Toast.LENGTH_SHORT).show();
                 mediaControlBinder.setProgressHandler(handler);
                 // handler.post(r);
                 break;
             case 2:
                 mediaControlBinder.pause();
                 mediaControlBinder.setProgressHandler(null);
-                Toast.makeText(this,prefes.getBool(Utils.SAVE_MEDIA_PLAYING,false)+"MediaPosition"+prefes.getInt(Utils.SAVE_MEDIA_PLAYER_POSITION,0),Toast.LENGTH_SHORT).show();
+                // Toast.makeText(this,prefes.getBool(Utils.SAVE_MEDIA_PLAYING,false)+"MediaPosition"+prefes.getInt(Utils.SAVE_MEDIA_PLAYER_POSITION,0),Toast.LENGTH_SHORT).show();
 
                 break;
             case 3:
@@ -468,7 +468,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 int positions= prefes.getInt(String.valueOf(id),0);
                 prefes.setValue(Utils.BOOK_ID,String.valueOf(id));
                 File soundFile = new  File(file);
-                Toast.makeText(this,"Playing:"+soundFile,Toast.LENGTH_SHORT).show();
+                //    Toast.makeText(this,"Playing:"+soundFile,Toast.LENGTH_SHORT).show();
                 mediaControlBinder.setProgressHandler(handler);
                 mediaControlBinder.play(soundFile,positions);
                 break;

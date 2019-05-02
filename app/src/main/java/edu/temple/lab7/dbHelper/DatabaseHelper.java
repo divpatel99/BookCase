@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.widget.Spinner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +72,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(Book.TABLE_NAME,
-                new String[]{Book.COLUMN_ID, Book.COLUMN_Author, Book.COLUMN_DURATION, Book.COLUMN_PUBLISHER, Book.COLUMN_TITLE, Book.COLUMN_IMAGE, Book.COLUMN_TIMESTAMP},
+                new String[]{Book.COLUMN_ID, Book.COLUMN_Author,Book.COLUMN_DURATION,Book.COLUMN_PUBLISHER,Book.COLUMN_TITLE,Book.COLUMN_IMAGE, Book.COLUMN_TIMESTAMP},
                 Book.COLUMN_ID + "=?",
                 new String[]{String.valueOf(id)}, null, null, null, null);
 

@@ -36,7 +36,6 @@ public class DownloadSongService extends IntentService {
         String checkSAVEDB= intent.getStringExtra(SAVE_DB);
         startDownload(downloadPath, destinationPath,checkSAVEDB);
     }
-
     private void startDownload(String downloadPath, String destinationPath,String saveDB) {
         Uri uri = Uri.parse(downloadPath); // Path where you want to download file.
 
@@ -58,5 +57,4 @@ public class DownloadSongService extends IntentService {
             Utils.arraylistBookDB.addAll(db.getAllNotes());
         }
     }
-
 }
